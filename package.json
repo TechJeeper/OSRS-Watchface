@@ -1,0 +1,137 @@
+{
+  "name": "osrs-watchface",
+  "author": "caffeinegamer",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app",
+    "watchface",
+    "runescape",
+    "osrs",
+    "weather",
+    "rpg"
+  ],
+  "private": true,
+  "dependencies": {
+    "@rebble/clay": "^1.1.0"
+  },
+  "pebble": {
+    "displayName": "Old School RuneScape",
+    "uuid": "a7c3e91b-4f28-4d65-8e1a-9b0c2d5f7a14",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery",
+      "basalt",
+      "diorite",
+      "flint"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": [
+      "configurable",
+      "location",
+      "health"
+    ],
+    "messageKeys": [
+      "REQUEST_WEATHER",
+      "WEATHER_TEMP_NOW",
+      "WEATHER_FEELS",
+      "WEATHER_CODE_NOW",
+      "WEATHER_UPDATED",
+      "WEATHER_FETCHED_AT",
+      "WEATHER_ERROR",
+      "HOUR0_TEMP",
+      "HOUR0_CODE",
+      "HOUR0_POP",
+      "HOUR0_TIME",
+      "HOUR1_TEMP",
+      "HOUR1_CODE",
+      "HOUR1_POP",
+      "HOUR1_TIME",
+      "HOUR2_TEMP",
+      "HOUR2_CODE",
+      "HOUR2_POP",
+      "HOUR2_TIME",
+      "HOUR3_TEMP",
+      "HOUR3_CODE",
+      "HOUR3_POP",
+      "HOUR3_TIME",
+      "TODAY_MIN",
+      "TODAY_MAX",
+      "TODAY_CODE",
+      "TODAY_POP",
+      "TOMORROW_MIN",
+      "TOMORROW_MAX",
+      "TOMORROW_CODE",
+      "TOMORROW_POP",
+      "TimeFormat",
+      "LeadingZero",
+      "ShowDate",
+      "ShowChips",
+      "ShowOrbs",
+      "ShowForecast",
+      "ShowTomorrow",
+      "ShowHeartRate",
+      "TemperatureUnit",
+      "RefreshMinutes",
+      "Theme",
+      "InvertBw"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "IMAGE_MENU_ICON",
+          "file": "images/menu_icon.png",
+          "menuIcon": true
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ORB_HP",
+          "file": "images/ui/orb_hp.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ORB_PRAYER",
+          "file": "images/ui/orb_prayer.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_ORB_RUN",
+          "file": "images/ui/orb_run.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_CLEAR",
+          "file": "images/weather/scene_clear.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_CLOUD",
+          "file": "images/weather/scene_cloud.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_RAIN",
+          "file": "images/weather/scene_rain.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_SNOW",
+          "file": "images/weather/scene_snow.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_STORM",
+          "file": "images/weather/scene_storm.png"
+        },
+        {
+          "type": "bitmap",
+          "name": "IMAGE_SCENE_FOG",
+          "file": "images/weather/scene_fog.png"
+        }
+      ]
+    }
+  }
+}
