@@ -52,7 +52,8 @@ function storageSet(key, value) {
 }
 
 function weatherCacheKey(useF) {
-  return 'osrs-weather-cache-v1-' + (useF ? 'f' : 'c');
+  // Bump when hourly indexing / labels change so phones drop bad caches.
+  return 'osrs-weather-cache-v2-' + (useF ? 'f' : 'c');
 }
 
 function locationCacheKey() {
@@ -64,9 +65,18 @@ function numOr(value, fallback) {
   return value == null || isNaN(n) ? fallback : n;
 }
 
+// Open-Meteo with timezone=auto returns wall-clock times with no offset
+// (e.g. "2026-11-02T16:00"). new Date(iso) often treats that as UTC and
+// shifts the hourly strip by the phone's timezone — parse as local instead.
+function parseOmLocal(isoTime) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(isoTime || '');
+  if (!m) return null;
+  return new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], 0, 0);
+}
+
 function hourLabel(isoTime) {
-  var d = new Date(isoTime);
-  if (isNaN(d.getTime())) {
+  var d = parseOmLocal(isoTime);
+  if (!d || isNaN(d.getTime())) {
     var m = /T(\d\d):/.exec(isoTime || '');
     return m ? m[1] : '--';
   }
@@ -77,8 +87,8 @@ function findCurrentHourIndex(hourlyTimes) {
   var now = new Date();
   var best = 0;
   for (var i = 0; i < hourlyTimes.length; i++) {
-    var d = new Date(hourlyTimes[i]);
-    if (!isNaN(d.getTime()) && d.getTime() >= now.getTime() - 30 * 60 * 1000) {
+    var d = parseOmLocal(hourlyTimes[i]);
+    if (d && !isNaN(d.getTime()) && d.getTime() >= now.getTime() - 30 * 60 * 1000) {
       return i;
     }
     best = i;

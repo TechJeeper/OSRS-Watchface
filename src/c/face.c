@@ -169,15 +169,15 @@ static void update_proc(Layer *layer, GContext *ctx) {
   int by = H - bottom_band + 2;
 
   if (cfg->show_chips) {
-    char steps_buf[12], line[40];
+    char steps_buf[12], hr_buf[12], line[48];
     format_steps(steps_buf, sizeof(steps_buf), s_steps);
     if (cfg->show_heart_rate && s_hr > 0) {
-      snprintf(line, sizeof(line), "%s   %d   %d%%%s",
-               steps_buf, s_hr, s_battery_pct, s_charging ? "+" : "");
+      snprintf(hr_buf, sizeof(hr_buf), "%d", s_hr);
     } else {
-      snprintf(line, sizeof(line), "%s   %d%%%s",
-               steps_buf, s_battery_pct, s_charging ? "+" : "");
+      snprintf(hr_buf, sizeof(hr_buf), "--");
     }
+    snprintf(line, sizeof(line), "%s  %s  %d%%%s",
+             steps_buf, hr_buf, s_battery_pct, s_charging ? "+" : "");
     draw_text_shadowed(ctx, line, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
                        GRect(2, by, W - 4, 16), GTextAlignmentCenter, pal.text, GColorBlack);
     by += 15;
