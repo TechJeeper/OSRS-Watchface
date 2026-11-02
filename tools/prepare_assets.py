@@ -35,48 +35,39 @@ WHITE_BORDER = 230
 def crop_white_border(im: Image.Image, threshold: int = WHITE_BORDER) -> Image.Image:
     """Remove PixelLab letterbox / window frames so scenes are full-bleed.
 
-    PixelLab often leaves a 1px dirty edge outside a thick white matte. Treat
-    near-white as empty and crop to the real painted content bbox.
+    PixelLab often draws a 1px dirty edge, then a thick white matte, then art.
+    Take the longest contiguous non-matte run of columns/rows (the real scene).
     """
     im = im.convert("RGBA")
     w, h = im.size
-    mask = Image.new("L", (w, h), 0)
-    src = im.load()
-    dst = mask.load()
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = src[x, y]
-            if a < 8:
-                continue
-            if r >= threshold and g >= threshold and b >= threshold:
-                continue
-            dst[x, y] = 255
+    px = im.load()
 
-    bbox = mask.getbbox()
-    if not bbox:
+    def is_white(x: int, y: int) -> bool:
+        r, g, b, a = px[x, y]
+        return a < 8 or (r >= threshold and g >= threshold and b >= threshold)
+
+    col_matte = [
+        sum(1 for y in range(h) if is_white(x, y)) > 0.85 * h for x in range(w)
+    ]
+    row_matte = [
+        sum(1 for x in range(w) if is_white(x, y)) > 0.85 * w for y in range(h)
+    ]
+
+    def longest_false_run(flags: list[bool]) -> tuple[int, int]:
+        best_s, best_e, start = 0, 0, None
+        for i, flag in enumerate(flags + [True]):
+            if not flag and start is None:
+                start = i
+            elif flag and start is not None:
+                if i - start > best_e - best_s:
+                    best_s, best_e = start, i
+                start = None
+        return best_s, best_e
+
+    left, right = longest_false_run(col_matte)
+    top, bottom = longest_false_run(row_matte)
+    if right - left < 8 or bottom - top < 8:
         return im
-
-    left, top, right, bottom = bbox
-    # Trim residual mostly-empty gutters (white columns with a few content pixels).
-    px = mask.load()
-
-    def mostly_empty_col(x: int) -> bool:
-        painted = sum(1 for y in range(top, bottom) if px[x, y])
-        return painted < 0.15 * (bottom - top)
-
-    def mostly_empty_row(y: int) -> bool:
-        painted = sum(1 for x in range(left, right) if px[x, y])
-        return painted < 0.15 * (right - left)
-
-    while left < right - 8 and mostly_empty_col(left):
-        left += 1
-    while right > left + 8 and mostly_empty_col(right - 1):
-        right -= 1
-    while top < bottom - 8 and mostly_empty_row(top):
-        top += 1
-    while bottom > top + 8 and mostly_empty_row(bottom - 1):
-        bottom -= 1
-
     return im.crop((left, top, right, bottom))
 
 
