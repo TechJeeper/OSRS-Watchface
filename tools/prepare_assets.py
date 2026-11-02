@@ -29,6 +29,55 @@ SCENES = (
 )
 
 SCENE_SIZE = (144, 168)
+WHITE_BORDER = 230
+
+
+def crop_white_border(im: Image.Image, threshold: int = WHITE_BORDER) -> Image.Image:
+    """Remove PixelLab letterbox / window frames so scenes are full-bleed.
+
+    PixelLab often leaves a 1px dirty edge outside a thick white matte. Treat
+    near-white as empty and crop to the real painted content bbox.
+    """
+    im = im.convert("RGBA")
+    w, h = im.size
+    mask = Image.new("L", (w, h), 0)
+    src = im.load()
+    dst = mask.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = src[x, y]
+            if a < 8:
+                continue
+            if r >= threshold and g >= threshold and b >= threshold:
+                continue
+            dst[x, y] = 255
+
+    bbox = mask.getbbox()
+    if not bbox:
+        return im
+
+    left, top, right, bottom = bbox
+    # Trim residual mostly-empty gutters (white columns with a few content pixels).
+    px = mask.load()
+
+    def mostly_empty_col(x: int) -> bool:
+        painted = sum(1 for y in range(top, bottom) if px[x, y])
+        return painted < 0.15 * (bottom - top)
+
+    def mostly_empty_row(y: int) -> bool:
+        painted = sum(1 for x in range(left, right) if px[x, y])
+        return painted < 0.15 * (right - left)
+
+    while left < right - 8 and mostly_empty_col(left):
+        left += 1
+    while right > left + 8 and mostly_empty_col(right - 1):
+        right -= 1
+    while top < bottom - 8 and mostly_empty_row(top):
+        top += 1
+    while bottom > top + 8 and mostly_empty_row(bottom - 1):
+        bottom -= 1
+
+    return im.crop((left, top, right, bottom))
 
 
 def key_black(im: Image.Image, threshold: int = BLACK_KEY) -> Image.Image:
@@ -83,12 +132,12 @@ def main() -> None:
         src = RAW / name
         if not src.exists():
             raise SystemExit(f"missing {src}")
-        im = Image.open(src).convert("RGBA")
-        if im.size != SCENE_SIZE:
-            im = im.resize(SCENE_SIZE, Image.Resampling.NEAREST)
+        im = crop_white_border(Image.open(src))
+        # Stretch cropped art edge-to-edge — no letterbox window frame.
+        im = im.resize(SCENE_SIZE, Image.Resampling.NEAREST)
         dest = OUT_WX / name
         im.save(dest)
-        print(f"wx {dest.name} {im.size[0]}x{im.size[1]}")
+        print(f"wx {dest.name} {im.size[0]}x{im.size[1]} (from crop)")
 
     menu_src = RAW / "menu_icon.png"
     im = fit_square(key_black(Image.open(menu_src)), 25)
